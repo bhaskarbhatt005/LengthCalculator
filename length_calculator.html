@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cable Assembly Length Configurator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:        #0A1E30;
+  --ink-2:      #0F2A42;
+  --ink-3:      #123351;
+  --line:       #2C5372;
+  --line-dim:   #1B3A54;
+  --paper:      #E9F1F7;
+  --paper-dim:  #93AFC6;
+  --paper-mute: #6D8CA5;
+  --accent:     #FF6A2C;
+  --teal:       #4FD9C8;
+  --radius:     3px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:
+    linear-gradient(rgba(233,241,247,0.05) 1px, transparent 1px) 0 0/ 34px 34px,
+    linear-gradient(90deg, rgba(233,241,247,0.05) 1px, transparent 1px) 0 0/ 34px 34px,
+    var(--ink);
+  color:var(--paper);
+  font-family:'IBM Plex Sans', sans-serif;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--accent);color:var(--ink);}
+
+.wrap{max-width:1180px;margin:0 auto;padding:26px 22px 70px;}
+
+/* ---------- header ---------- */
+.appbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:14px;
+  margin-bottom:22px;
+}
+.brand h1{
+  font-family:'IBM Plex Sans Condensed',sans-serif;
+  font-weight:700;
+  font-size:22px;
+  margin:0 0 2px;
+  letter-spacing:0.2px;
+}
+.brand p{
+  margin:0;
+  color:var(--paper-dim);
+  font-size:13px;
+}
+
+.tabnav{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+  border:1px solid var(--line);
+  padding:4px;
+  background:var(--ink-2);
+}
+.tab-btn{
+  padding:9px 16px;
+  border:none;
+  background:transparent;
+  color:var(--paper-dim);
+  font-family:'IBM Plex Sans Condensed',sans-serif;
+  font-weight:600;
+  font-size:13.5px;
+  letter-spacing:0.2px;
+  cursor:pointer;
+  border-radius:2px;
+  display:flex;
+  align-items:center;
+  gap:7px;
+}
+.tab-btn .dot{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.55;}
+.tab-btn.active{background:var(--ink-3);color:var(--paper);}
+.tab-btn.active .dot{opacity:1;}
+
+/* ---------- product panel ---------- */
+.panel{display:none;}
+.panel.active{display:block;}
+
+.product-head{
+  border:1px solid var(--line);
+  background:var(--ink-2);
+  padding:20px 22px;
+  margin-bottom:16px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:20px;
+  flex-wrap:wrap;
+}
+.product-head h2{
+  font-family:'IBM Plex Sans Condensed',sans-serif;
+  font-size:24px;
+  margin:0 0 4px;
+  font-weight:700;
+}
+.product-head p{
+  margin:0;
+  color:var(--paper-dim);
+  font-size:13.5px;
+  max-width:56ch;
+}
+.schema{
+  display:flex;
+  align-items:center;
+  gap:0;
+  flex-shrink:0;
+}
+.schema .node{
+  width:34px;height:34px;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px;
+  font-weight:600;
+  color:var(--ink);
+  background:var(--accent-c);
+  border:2px solid var(--ink);
+}
+.schema .wire{width:46px;height:2px;background:var(--line);}
+
+/* ---------- layout grid ---------- */
+.grid2{display:grid;grid-template-columns:1.05fr 0.95fr;gap:16px;align-items:start;}
+@media (max-width:820px){ .grid2{grid-template-columns:1fr;} }
+
+.card{border:1px solid var(--line);background:var(--ink-2);padding:18px 18px 16px;}
+.card-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--line-dim);
+}
+.card-head h3{
+  font-family:'IBM Plex Sans Condensed',sans-serif;font-size:15px;margin:0;font-weight:600;
+}
+
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px;}
+@media (max-width:480px){ .field-grid{grid-template-columns:1fr;} }
+.field{margin-bottom:2px;}
+.field label{display:block;font-size:12px;color:var(--paper-dim);margin-bottom:5px;}
+.field input[type=number]{
+  width:100%;background:var(--ink);border:1px solid var(--line);color:var(--paper);
+  font-family:'IBM Plex Mono',monospace;font-size:13.5px;padding:8px 9px;border-radius:var(--radius);
+}
+.field input:focus{outline:none;border-color:var(--accent-c);}
+.field.span2{grid-column:1/-1;}
+
+/* scenario pills */
+.pillrow{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+.pill{
+  padding:8px 14px;border:1px solid var(--line);background:var(--ink);color:var(--paper-dim);
+  font-family:'IBM Plex Sans',sans-serif;font-size:12.5px;cursor:pointer;border-radius:20px;
+}
+.pill.active{background:var(--accent-c);border-color:var(--accent-c);color:var(--ink);font-weight:600;}
+
+/* results */
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+.stat-row.single{grid-template-columns:1fr;}
+.stat-row.module{grid-template-columns:1fr 1fr;}
+@media (max-width:480px){ .stat-row{grid-template-columns:1fr;} }
+.stat{
+  border:1px solid var(--line-dim);background:var(--ink);padding:14px 14px;text-align:center;
+}
+.stat .k{font-size:11px;color:var(--paper-mute);margin-bottom:6px;letter-spacing:0.2px;}
+.stat .v{font-family:'IBM Plex Mono',monospace;font-size:21px;font-weight:600;color:var(--paper);}
+.stat.hero{border-color:var(--accent-c);}
+.stat.hero .v{color:var(--accent-c);}
+
+.material-list{margin-top:4px;}
+.material-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:9px 2px;border-bottom:1px solid var(--line-dim);font-size:13px;
+}
+.material-row:last-child{border-bottom:none;}
+.material-row .v{font-family:'IBM Plex Mono',monospace;color:var(--teal);font-weight:500;}
+
+/* advanced */
+details{border:1px solid var(--line);background:var(--ink-2);margin-top:14px;}
+summary{
+  cursor:pointer;list-style:none;padding:13px 18px;
+  font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600;font-size:13.5px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+summary::-webkit-details-marker{display:none;}
+summary .chev{color:var(--paper-dim);transition:transform .2s ease;}
+details[open] summary .chev{transform:rotate(90deg);}
+.details-body{padding:2px 18px 16px;}
+
+.foot{
+  margin-top:34px;padding-top:14px;border-top:1px solid var(--line-dim);
+  font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--paper-mute);
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;
+}
+
+@media (max-width:600px){
+  .appbar{flex-direction:column;align-items:flex-start;}
+  .product-head{flex-direction:column;align-items:flex-start;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="appbar">
+    <div class="brand">
+      <h1>Cable Assembly Length Configurator</h1>
+      <p>Cutting-length and material planning across the fiber assembly product range.</p>
+    </div>
+    <div class="tabnav" id="tabnav"></div>
+  </div>
+
+  <div id="panels"></div>
+
+  <div class="foot">
+    <span>All lengths in meters unless noted.</span>
+    <span id="foot-time"></span>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   PRODUCT CONFIGURATION
+   ============================================================ */
+const PRODUCTS = [
+  {
+    key:"masterline", name:"Masterline", accent:"#FF6A2C",
+    tagline:"Divider-to-divider length for masterline cable assemblies, including packaging additions.",
+    kind:"masterline"
+  },
+  {
+    key:"trunk", name:"Trunk", accent:"#4FD9C8",
+    tagline:"Multi-fiber trunk cable with fanout breakouts on both ends.",
+    kind:"breakout",
+    defaults:{N:12,L1:10,FA:1,FB:1,AB:0.03,ABtol:0.01,Fadd:0.05,Sadd:0.3,Stol:0.02,Cadd:0.07,Ctol:0.01},
+    hasSlip:true, slipDefaults:{both:0.007,one:0.007,conn:0.007}
+  },
+  {
+    key:"harness", name:"Harness", accent:"#F2C14E",
+    tagline:"Fiber harness assembly with independent breakout legs.",
+    kind:"breakout",
+    defaults:{N:12,L1:5,FA:0,FB:0.8,AB:0.18,ABtol:0.02,Fadd:0.05,Sadd:0.3,Stol:0.02,Cadd:0.07,Ctol:0.01},
+    hasSlip:true, slipDefaults:{both:0.007,one:0.007,conn:0.007}
+  },
+  {
+    key:"medusa", name:"Medusa", accent:"#FF6B9E",
+    tagline:"High fiber-count Medusa breakout cable.",
+    kind:"breakout",
+    defaults:{N:48,L1:30,FA:5,FB:5,AB:0.18,ABtol:0.02,Fadd:0.05,Sadd:0.3,Stol:0.02,Cadd:0.07,Ctol:0.01},
+    hasSlip:false
+  },
+  {
+    key:"preterm", name:"Preterm", accent:"#9B8CFF",
+    tagline:"Pre-terminated cable with divider, splice, connector or module ends.",
+    kind:"breakout",
+    defaults:{N:22,L1:120,FA:0,FB:0.25,AB:0.18,ABtol:0.02,Fadd:0.05,Sadd:0.3,Stol:0.02,Cadd:0.07,Ctol:0.01},
+    hasSlip:false,
+    hasModule:true, moduleDefaults:{A:0.35,B:1}
+  }
+];
+
+const SCENARIOS_BASE = [
+  {key:"divider-divider", label:"Divider · Divider"},
+  {key:"divider-splice",  label:"Divider · Splice"},
+  {key:"connector-divider", label:"Connector · Divider"}
+];
+const SCENARIOS_PRETERM_EXTRA = [
+  {key:"module-a-divider", label:"Module A · Divider"},
+  {key:"module-b-divider", label:"Module B · Divider"}
+];
+
+/* ============================================================
+   MATH
+   ============================================================ */
+function tolBracket(L1){
+  if (L1 < 0.5001) return 0.04;
+  if (L1 < 1.001)  return 0.06;
+  if (L1 < 5.001)  return 0.3;
+  if (L1 < 25.001) return 0.5;
+  return 0.02 * L1;
+}
+
+function computeScenario(cfg, v, scenario){
+  const {N,L1,FA,FB,AB,ABtol,Fadd,Sadd,Stol,Cadd,Ctol} = v;
+  const T = tolBracket(L1);
+  const hasSlip = cfg.hasSlip;
+  const slip = v.slip || {both:0,one:0,conn:0};
+
+  if (scenario === "divider-divider"){
+    const base = L1+T+FA+AB-ABtol+FB+AB-ABtol;
+    const s = hasSlip ? slip.both*base : 0;
+    return {
+      mode: hasSlip ? "range" : "single",
+      target: base-s, min: hasSlip ? base-2*s : base, max: base,
+      materials:[
+        {label:"Fanout material — Side A", value:N*(FA+Fadd)},
+        {label:"Fanout material — Side B", value:N*(FB+Fadd)}
+      ]
+    };
+  }
+
+  if (scenario === "divider-splice"){
+    const base = L1+T+FA+AB-ABtol+Sadd-Stol;
+    const slipArg = L1+T+Sadd-Stol+FB+AB-ABtol;
+    const s = hasSlip ? slip.one*slipArg : 0;
+    const rangeBase = L1+T+FA+AB-ABtol;
+    return {
+      mode: hasSlip ? "range" : "single",
+      target: base-s, min: hasSlip ? rangeBase-2*s : rangeBase, max: rangeBase,
+      materials:[{label:"Fanout material — Side A", value:N*(FA+Fadd)}]
+    };
+  }
+
+  if (scenario === "connector-divider"){
+    const base = L1+T+Cadd-Ctol+FB+AB-ABtol;
+    const s = hasSlip ? slip.conn*base : 0;
+    return {
+      mode: hasSlip ? "range" : "single",
+      target: base-s, min: hasSlip ? base-2*s : base, max: base,
+      materials:[{label:"Fanout material — Side B", value:N*(FB+Fadd)}]
+    };
+  }
+
+  if (scenario === "module-a-divider" || scenario === "module-b-divider"){
+    const madd = scenario === "module-a-divider" ? v.moduleA : v.moduleB;
+    const base = L1+T+Cadd-Ctol+FB+AB-ABtol;
+    return {
+      mode:"module",
+      base, withModule: base+madd,
+      materials:[{label:"Fanout material — Side B", value:N*(FB+Fadd)}]
+    };
+  }
+}
+
+/* ============================================================
+   RENDER — tabs
+   ============================================================ */
+const tabnav = document.getElementById("tabnav");
+const panelsHost = document.getElementById("panels");
+
+PRODUCTS.forEach((p,i)=>{
+  const btn = document.createElement("button");
+  btn.className = "tab-btn" + (i===0 ? " active" : "");
+  btn.style.color = i===0 ? "" : "";
+  btn.innerHTML = '<span class="dot" style="color:'+p.accent+'"></span>'+p.name;
+  btn.addEventListener("click", ()=> switchTab(p.key));
+  btn.dataset.key = p.key;
+  tabnav.appendChild(btn);
+});
+
+function switchTab(key){
+  document.querySelectorAll(".tab-btn").forEach(b=> b.classList.toggle("active", b.dataset.key===key));
+  document.querySelectorAll(".panel").forEach(p=> p.classList.toggle("active", p.id==="panel-"+key));
+}
+
+/* ============================================================
+   RENDER — Masterline panel (built once, static markup)
+   ============================================================ */
+function buildMasterlinePanel(cfg){
+  const el = document.createElement("section");
+  el.className = "panel";
+  el.id = "panel-"+cfg.key;
+  el.innerHTML = `
+    <div class="product-head" style="--accent-c:${cfg.accent}">
+      <div><h2>${cfg.name}</h2><p>${cfg.tagline}</p></div>
+      <div class="schema">
+        <div class="node" style="--accent-c:${cfg.accent}">A</div><div class="wire"></div>
+        <div class="node" style="--accent-c:${cfg.accent}">B</div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="card-head"><h3>Side A</h3></div>
+        <div class="field-grid">
+          <div class="field span2"><label>Divider / termination type</label><select id="ml-D27"></select></div>
+          <div class="field"><label>Max. break-out length (m)</label><input type="number" id="ml-D24" step="0.01" value="4"></div>
+          <div class="field"><label>Min. break-out length (m)</label><input type="number" id="ml-D25" step="0.01" value="2"></div>
+          <div class="field"><label>Empty-tube length variants</label><input type="number" id="ml-G24" step="1" value="4"></div>
+          <div class="field"><label>Grade (m)</label><input type="number" id="ml-I24" step="0.01" value="3"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Side B</h3></div>
+        <div class="field-grid">
+          <div class="field span2"><label>Divider / termination type</label><select id="ml-E27"></select></div>
+          <div class="field"><label>Max. break-out length (m)</label><input type="number" id="ml-E24" step="0.01" value="3"></div>
+          <div class="field"><label>Min. break-out length (m)</label><input type="number" id="ml-E25" step="0.01" value="0"></div>
+          <div class="field"><label>Empty-tube length variants</label><input type="number" id="ml-G26" step="1" value="1"></div>
+          <div class="field"><label>Grade (m)</label><input type="number" id="ml-I26" step="0.01" value="2"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid2" style="margin-top:16px;">
+      <div class="card">
+        <div class="card-head"><h3>Cutting length</h3></div>
+        <div class="field"><label>Length in meter</label><input type="number" id="ml-D26" step="0.01" value="26"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Double production</h3></div>
+        <div class="pillrow" style="margin-bottom:0;">
+          <div class="pill" data-o9="No" id="ml-o9-no">Off</div>
+          <div class="pill" data-o9="Yes" id="ml-o9-yes">On</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="card-head"><h3>Result</h3></div>
+      <div class="stat-row">
+        <div class="stat hero"><div class="k">Total length</div><div class="v" id="ml-out-total-m">—</div></div>
+        <div class="stat"><div class="k">In feet</div><div class="v" id="ml-out-total-ft">—</div></div>
+        <div class="stat"><div class="k">Divider tolerance total</div><div class="v" id="ml-out-tol">—</div></div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;margin-top:6px;">
+        <tr><td style="padding:8px 2px;color:var(--paper-dim);font-size:13px;border-bottom:1px solid var(--line-dim);">Break-out contribution, Side A</td><td style="padding:8px 2px;text-align:right;font-family:'IBM Plex Mono',monospace;border-bottom:1px solid var(--line-dim);" id="ml-out-L3">—</td></tr>
+        <tr><td style="padding:8px 2px;color:var(--paper-dim);font-size:13px;border-bottom:1px solid var(--line-dim);">Break-out contribution, Side B</td><td style="padding:8px 2px;text-align:right;font-family:'IBM Plex Mono',monospace;border-bottom:1px solid var(--line-dim);" id="ml-out-L5">—</td></tr>
+        <tr><td style="padding:8px 2px;color:var(--paper-dim);font-size:13px;">Cutting length before tolerance</td><td style="padding:8px 2px;text-align:right;font-family:'IBM Plex Mono',monospace;" id="ml-out-L1">—</td></tr>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="card-head"><h3>Packaging — additional length</h3></div>
+      <table style="width:100%;border-collapse:collapse;">
+        <tr><th style="text-align:left;font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:500;color:var(--paper-dim);font-size:12px;padding:8px 2px;">Type</th><th style="text-align:right;font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:500;color:var(--paper-dim);font-size:12px;padding:8px 2px;">Side A</th><th style="text-align:right;font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:500;color:var(--paper-dim);font-size:12px;padding:8px 2px;">Side B</th></tr>
+        <tr><td style="padding:8px 2px;border-top:1px solid var(--line-dim);color:var(--paper-dim);font-size:13px;">Foil bag</td><td style="padding:8px 2px;border-top:1px solid var(--line-dim);text-align:right;font-family:'IBM Plex Mono',monospace;" id="ml-out-H43">—</td><td style="padding:8px 2px;border-top:1px solid var(--line-dim);text-align:right;font-family:'IBM Plex Mono',monospace;" id="ml-out-I43">—</td></tr>
+        <tr><td style="padding:8px 2px;color:var(--paper-dim);font-size:13px;">Pulling tube</td><td style="padding:8px 2px;text-align:right;font-family:'IBM Plex Mono',monospace;" id="ml-out-H44">—</td><td style="padding:8px 2px;text-align:right;font-family:'IBM Plex Mono',monospace;" id="ml-out-I44">—</td></tr>
+        <tr><td style="padding:8px 2px;color:var(--paper-dim);font-size:13px;">Braided tube</td><td style="padding:8px 2px;text-align:right;font-family:'IBM Plex Mono',monospace;" id="ml-out-H45">—</td><td style="padding:8px 2px;text-align:right;font-family:'IBM Plex Mono',monospace;" id="ml-out-I45">—</td></tr>
+      </table>
+    </div>
+
+    <details>
+      <summary>Tolerance &amp; packaging constants <span class="chev">▸</span></summary>
+      <div class="details-body">
+        <div class="field-grid">
+          <div class="field"><label>Feed-fibre / manifold tolerance (m)</label><input type="number" id="ml-H30" step="0.01" value="0.16"></div>
+          <div class="field"><label>Tolerance, length ≤ 0.5 m</label><input type="number" id="ml-H32" step="0.01" value="0.04"></div>
+          <div class="field"><label>Tolerance, length ≤ 1.0 m</label><input type="number" id="ml-H33" step="0.01" value="0.06"></div>
+          <div class="field"><label>Tolerance, length ≤ 5.0 m</label><input type="number" id="ml-H34" step="0.01" value="0.3"></div>
+          <div class="field"><label>Tolerance, length ≤ 25 m</label><input type="number" id="ml-H35" step="0.01" value="0.5"></div>
+          <div class="field"><label>Multiplier, length &gt; 25 m</label><input type="number" id="ml-H36" step="0.01" value="1.02"></div>
+          <div class="field"><label>Splicing tolerance, blunt cut (m)</label><input type="number" id="ml-H37" step="0.01" value="0.29"></div>
+          <div class="field"><label>Foil bag addition (m)</label><input type="number" id="ml-G43" step="0.01" value="0.2"></div>
+          <div class="field"><label>Pulling tube addition (m)</label><input type="number" id="ml-G44" step="0.01" value="0.1"></div>
+          <div class="field"><label>Braided tube addition (m)</label><input type="number" id="ml-G45" step="0.01" value="0.45"></div>
+        </div>
+      </div>
+    </details>
+  `;
+  panelsHost.appendChild(el);
+}
+
+const DIVIDER_ORDER = ["Compact","ATC","Extreme","Lite","Ultralite","Masterline classic","Blunt Cut",
+  "Smartline","Riser","Smartline MTP","MTP","Q-ODC-12","MLU_06","MLUH66","MLUH33",
+  "shrink tube (assembly)","molded divider (assembly)","MLE(H)","shrink tube (trunk)"];
+const H30_LINKED = new Set(["Compact","ATC","Extreme","Lite","Ultralite","Masterline classic"]);
+const DIVIDER_TOL = {
+  "Compact":null,"ATC":null,"Extreme":null,"Lite":null,"Ultralite":null,
+  "Masterline classic":0.16,"Blunt Cut":0,"Smartline":0.02,"Riser":0.02,"Smartline MTP":0.02,
+  "MTP":0.06,"Q-ODC-12":0.06,"MLU_06":0.9,"MLUH66":1.35,"MLUH33":0.7,
+  "shrink tube (assembly)":0,"molded divider (assembly)":0,"MLE(H)":0,"shrink tube (trunk)":0
+};
+const NAMED = { A58:"Lite", A61:"Smartline MTP", A65:"Q-ODC-12", A66:"MLU_06", A67:"MLUH33", A68:"MLUH66", A69:"shrink tube (assembly)" };
+
+function dividerTol(name, h30){
+  if (H30_LINKED.has(name)) return h30;
+  const t = DIVIDER_TOL[name];
+  return t === null || t === undefined ? h30 : t;
+}
+
+function initMasterline(){
+  const sel1 = document.getElementById("ml-D27");
+  const sel2 = document.getElementById("ml-E27");
+  DIVIDER_ORDER.forEach(n=>{
+    const o1=document.createElement("option"); o1.value=n; o1.textContent=n; if(n==="Smartline") o1.selected=true; sel1.appendChild(o1);
+    const o2=document.createElement("option"); o2.value=n; o2.textContent=n; if(n==="shrink tube (assembly)") o2.selected=true; sel2.appendChild(o2);
+  });
+
+  let O9 = "No";
+  document.getElementById("ml-o9-no").addEventListener("click", ()=>{O9="No"; syncO9(); calcMasterline();});
+  document.getElementById("ml-o9-yes").addEventListener("click", ()=>{O9="Yes"; syncO9(); calcMasterline();});
+  function syncO9(){
+    document.getElementById("ml-o9-no").classList.toggle("active", O9==="No");
+    document.getElementById("ml-o9-yes").classList.toggle("active", O9==="Yes");
+  }
+  syncO9();
+
+  function num(id){ const v=parseFloat(document.getElementById(id).value); return isNaN(v)?0:v; }
+  function val(id){ return document.getElementById(id).value; }
+  function fmt(n){ return (Math.round(n*100)/100).toFixed(2); }
+
+  function calcMasterline(){
+    const D24=num("ml-D24"), E24=num("ml-E24"), D25=num("ml-D25"), E25=num("ml-E25"), D26=num("ml-D26");
+    const G24=num("ml-G24"), I24=num("ml-I24"), G26=num("ml-G26"), I26=num("ml-I26");
+    const D27=val("ml-D27"), E27=val("ml-E27");
+    const H30=num("ml-H30"), H32=num("ml-H32"), H33=num("ml-H33"), H34=num("ml-H34"), H35=num("ml-H35"), H36=num("ml-H36"), H37=num("ml-H37");
+    const G43=num("ml-G43"), G44=num("ml-G44"), G45=num("ml-G45");
+
+    const zeroDividers = new Set(["MLUH33","MLUH66","MLU_06"]);
+    const K24 = zeroDividers.has(D27) ? 0 : (D27==="Blunt Cut" ? D24 : D24 + (G24-1)*I24);
+    const K26 = zeroDividers.has(E27) ? 0 : (E27==="Blunt Cut" ? E24 : E24 + (G26-1)*I26);
+
+    const ML1 = dividerTol(D27,H30);
+    const ML2 = dividerTol(E27,H30);
+
+    let base;
+    if (D26<=0.5) base=D26+H32; else if (D26<=1) base=D26+H33; else if (D26<=5) base=D26+H34; else if (D26<=25) base=D26+H35; else base=D26*H36;
+    const spliceExtra = (D27==="Blunt Cut"||E27==="Blunt Cut") ? H37 : 0;
+    const L1 = base+spliceExtra;
+
+    const bluntTol = DIVIDER_TOL["Blunt Cut"];
+    const L3 = D27==="MTP" ? bluntTol : (D27==="Blunt Cut" ? dividerTol(D27,H30) : K24);
+    const L5 = E27==="MTP" ? bluntTol : (E27==="Blunt Cut" ? dividerTol(E27,H30) : K26);
+
+    const L35 = L1+L3+L5+ML1+ML2;
+    const doubleProd = O9==="Yes" && (D27===NAMED.A58 || E27===NAMED.A58);
+    const F40 = doubleProd ? L35/2 : L35;
+    const K40 = F40*3.280839895;
+
+    const inSet=(x,arr)=>arr.includes(x);
+    const dropSetA=[NAMED.A67,NAMED.A68,NAMED.A69,NAMED.A65,NAMED.A66];
+    const H43=(D25===NAMED.A61)?0:(inSet(D25,dropSetA)?0.5:D26+G43);
+    const I43=(E25===NAMED.A61)?0:(inSet(E25,dropSetA)?0.5:0+G43);
+    const H44=inSet(D25,[...dropSetA,NAMED.A61])?0:D26+G44;
+    const I44=(inSet(E25,dropSetA)||D25===NAMED.A61)?0.5:0+G44;
+    const H45=inSet(D25,[...dropSetA,NAMED.A61])?0:D26+G45;
+    const I45=inSet(E25,[...dropSetA,NAMED.A61])?0:0+G45;
+
+    document.getElementById("ml-out-total-m").textContent = fmt(F40)+" m";
+    document.getElementById("ml-out-total-ft").textContent = fmt(K40)+" ft";
+    document.getElementById("ml-out-tol").textContent = fmt(ML1+ML2)+" m";
+    document.getElementById("ml-out-L3").textContent = fmt(L3)+" m";
+    document.getElementById("ml-out-L5").textContent = fmt(L5)+" m";
+    document.getElementById("ml-out-L1").textContent = fmt(L1)+" m";
+    document.getElementById("ml-out-H43").textContent = fmt(H43);
+    document.getElementById("ml-out-I43").textContent = fmt(I43);
+    document.getElementById("ml-out-H44").textContent = fmt(H44);
+    document.getElementById("ml-out-I44").textContent = fmt(I44);
+    document.getElementById("ml-out-H45").textContent = fmt(H45);
+    document.getElementById("ml-out-I45").textContent = fmt(I45);
+  }
+
+  document.querySelectorAll('#panel-masterline input, #panel-masterline select').forEach(el=>{
+    el.addEventListener("input", calcMasterline);
+    el.addEventListener("change", calcMasterline);
+  });
+  calcMasterline();
+}
+
+/* ============================================================
+   RENDER — breakout-family panels (Trunk, Harness, Medusa, Preterm)
+   ============================================================ */
+function buildBreakoutPanel(cfg){
+  const el = document.createElement("section");
+  el.className = "panel";
+  el.id = "panel-"+cfg.key;
+
+  const scenarios = cfg.hasModule ? SCENARIOS_BASE.concat(SCENARIOS_PRETERM_EXTRA) : SCENARIOS_BASE;
+  const p = "bo-"+cfg.key+"-"; // dom id prefix
+
+  let advancedHtml = "";
+  if (cfg.hasSlip){
+    advancedHtml = `
+      <details>
+        <summary>Slip tolerance <span class="chev">▸</span></summary>
+        <div class="details-body">
+          <div class="field-grid">
+            <div class="field"><label>Divider both sides</label><input type="number" id="${p}slipBoth" step="0.001" value="${cfg.slipDefaults.both}"></div>
+            <div class="field"><label>Divider one side</label><input type="number" id="${p}slipOne" step="0.001" value="${cfg.slipDefaults.one}"></div>
+            <div class="field"><label>Connector + divider</label><input type="number" id="${p}slipConn" step="0.001" value="${cfg.slipDefaults.conn}"></div>
+          </div>
+        </div>
+      </details>`;
+  }
+
+  let moduleFieldsHtml = "";
+  if (cfg.hasModule){
+    moduleFieldsHtml = `
+      <div class="field"><label>Module A allowance (m)</label><input type="number" id="${p}moduleA" step="0.01" value="${cfg.moduleDefaults.A}"></div>
+      <div class="field"><label>Module B allowance (m)</label><input type="number" id="${p}moduleB" step="0.01" value="${cfg.moduleDefaults.B}"></div>`;
+  }
+
+  el.innerHTML = `
+    <div class="product-head" style="--accent-c:${cfg.accent}">
+      <div><h2>${cfg.name}</h2><p>${cfg.tagline}</p></div>
+      <div class="schema">
+        <div class="node" style="--accent-c:${cfg.accent}">A</div><div class="wire"></div>
+        <div class="node" style="--accent-c:${cfg.accent}">B</div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="card-head"><h3>Cable &amp; fanout</h3></div>
+        <div class="field-grid">
+          <div class="field"><label>Fiber count</label><input type="number" id="${p}N" step="1" value="${cfg.defaults.N}"></div>
+          <div class="field"><label>Cable length (m)</label><input type="number" id="${p}L1" step="0.01" value="${cfg.defaults.L1}"></div>
+          <div class="field"><label>Fanout length — Side A (m)</label><input type="number" id="${p}FA" step="0.01" value="${cfg.defaults.FA}"></div>
+          <div class="field"><label>Fanout length — Side B (m)</label><input type="number" id="${p}FB" step="0.01" value="${cfg.defaults.FB}"></div>
+          <div class="field"><label>Jacket strip length (m)</label><input type="number" id="${p}AB" step="0.01" value="${cfg.defaults.AB}"></div>
+          <div class="field"><label>Jacket strip tolerance (± m)</label><input type="number" id="${p}ABtol" step="0.01" value="${cfg.defaults.ABtol}"></div>
+          <div class="field span2"><label>Extra allowance per fanout (m)</label><input type="number" id="${p}Fadd" step="0.01" value="${cfg.defaults.Fadd}"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>End treatments</h3></div>
+        <div class="field-grid">
+          <div class="field"><label>Splice allowance (m)</label><input type="number" id="${p}Sadd" step="0.01" value="${cfg.defaults.Sadd}"></div>
+          <div class="field"><label>Splice tolerance (± m)</label><input type="number" id="${p}Stol" step="0.01" value="${cfg.defaults.Stol}"></div>
+          <div class="field"><label>Connector allowance (m)</label><input type="number" id="${p}Cadd" step="0.01" value="${cfg.defaults.Cadd}"></div>
+          <div class="field"><label>Connector tolerance (± m)</label><input type="number" id="${p}Ctol" step="0.01" value="${cfg.defaults.Ctol}"></div>
+          ${moduleFieldsHtml}
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="card-head"><h3>End configuration</h3></div>
+      <div class="pillrow" id="${p}scenarios">
+        ${scenarios.map((s,i)=>`<div class="pill${i===0?" active":""}" data-scn="${s.key}">${s.label}</div>`).join("")}
+      </div>
+
+      <div id="${p}result-range" class="stat-row" style="display:none;">
+        <div class="stat"><div class="k">Minimum</div><div class="v" id="${p}out-min">—</div></div>
+        <div class="stat hero"><div class="k">Target</div><div class="v" id="${p}out-target">—</div></div>
+        <div class="stat"><div class="k">Maximum</div><div class="v" id="${p}out-max">—</div></div>
+      </div>
+
+      <div id="${p}result-single" class="stat-row single" style="display:none;">
+        <div class="stat hero"><div class="k">Cutting length</div><div class="v" id="${p}out-single">—</div></div>
+      </div>
+
+      <div id="${p}result-module" class="stat-row module" style="display:none;">
+        <div class="stat"><div class="k">Cutting length</div><div class="v" id="${p}out-mod-base">—</div></div>
+        <div class="stat hero"><div class="k">Incl. module</div><div class="v" id="${p}out-mod-full">—</div></div>
+      </div>
+
+      <div class="material-list" id="${p}materials"></div>
+    </div>
+
+    ${advancedHtml}
+  `;
+  panelsHost.appendChild(el);
+
+  // wire up
+  function num(id){ const v=parseFloat(document.getElementById(id).value); return isNaN(v)?0:v; }
+  function fmt(n){ return (Math.round(n*100)/100).toFixed(2); }
+
+  let activeScenario = scenarios[0].key;
+  el.querySelectorAll(`#${p}scenarios .pill`).forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      el.querySelectorAll(`#${p}scenarios .pill`).forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      activeScenario = btn.dataset.scn;
+      render();
+    });
+  });
+
+  function readValues(){
+    const v = {
+      N:num(p+"N"), L1:num(p+"L1"), FA:num(p+"FA"), FB:num(p+"FB"),
+      AB:num(p+"AB"), ABtol:num(p+"ABtol"), Fadd:num(p+"Fadd"),
+      Sadd:num(p+"Sadd"), Stol:num(p+"Stol"), Cadd:num(p+"Cadd"), Ctol:num(p+"Ctol")
+    };
+    if (cfg.hasSlip){
+      v.slip = { both:num(p+"slipBoth"), one:num(p+"slipOne"), conn:num(p+"slipConn") };
+    }
+    if (cfg.hasModule){
+      v.moduleA = num(p+"moduleA");
+      v.moduleB = num(p+"moduleB");
+    }
+    return v;
+  }
+
+  function render(){
+    const v = readValues();
+    const r = computeScenario(cfg, v, activeScenario);
+
+    document.getElementById(p+"result-range").style.display = r.mode==="range" ? "grid" : "none";
+    document.getElementById(p+"result-single").style.display = r.mode==="single" ? "grid" : "none";
+    document.getElementById(p+"result-module").style.display = r.mode==="module" ? "grid" : "none";
+
+    if (r.mode==="range"){
+      document.getElementById(p+"out-min").textContent = fmt(r.min)+" m";
+      document.getElementById(p+"out-target").textContent = fmt(r.target)+" m";
+      document.getElementById(p+"out-max").textContent = fmt(r.max)+" m";
+    } else if (r.mode==="single"){
+      document.getElementById(p+"out-single").textContent = fmt(r.target)+" m";
+    } else if (r.mode==="module"){
+      document.getElementById(p+"out-mod-base").textContent = fmt(r.base)+" m";
+      document.getElementById(p+"out-mod-full").textContent = fmt(r.withModule)+" m";
+    }
+
+    const mHost = document.getElementById(p+"materials");
+    mHost.innerHTML = "";
+    r.materials.forEach(m=>{
+      const row = document.createElement("div");
+      row.className = "material-row";
+      row.innerHTML = `<span>${m.label}</span><span class="v">${fmt(m.value)} m</span>`;
+      mHost.appendChild(row);
+    });
+  }
+
+  el.querySelectorAll("input").forEach(inp=>{
+    inp.addEventListener("input", render);
+  });
+
+  render();
+}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+PRODUCTS.forEach(cfg=>{
+  if (cfg.kind==="masterline") buildMasterlinePanel(cfg);
+  else buildBreakoutPanel(cfg);
+});
+document.getElementById("panel-masterline").classList.add("active");
+initMasterline();
+
+document.getElementById("foot-time").textContent = "Updated " + new Date().toLocaleTimeString();
+</script>
+</body>
+</html>
